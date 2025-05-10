@@ -1,62 +1,96 @@
 ﻿using System;
 
-namespace courseworkTMAS
+namespace CourseworkTMAS
 {
-    // This class simulates a Normal (Gaussian) distribution for generating random values.
-    class NormalDistrubtion
+    /// <summary>
+    /// Simulates a Normal (Gaussian) distribution for generating random values.
+    /// </summary>
+    public class NormalDistrubtion
     {
-        // Parameters for the normal distribution
-        private readonly int _standardDeviation;  // Standard deviation (σ)
-        private readonly int _expectation;        // Mean (μ)
-        private readonly int _range;              // Total number of sample points
+        private const double Precision = 0.0001;
+        private const int StandardDeviationsRange = 5; // ±5σ range
 
-        private double[] _values; // Precomputed normal distribution density values
-        private Random _rand;     // Random number generator
+        private readonly double _mean;
+        private readonly double _standardDeviation;
+        private readonly double[] _probabilityDensityValues;
+        private readonly Random _random;
 
-        // Constructor initializes the distribution parameters and precomputes the density function
-        public NormalDistrubtion(int expectation, int standardDeviation)
+        /// <summary>
+        /// Initializes a new normal distribution with specified parameters.
+        /// </summary>
+        /// <param name="mean">The expectation (μ) of the distribution</param>
+        /// <param name="standardDeviation">The standard deviation (σ) of the distribution</param>
+        public NormalDistrubtion(double mean, double standardDeviation)
         {
-            _expectation = expectation;
+            if (standardDeviation <= 0)
+                throw new ArgumentOutOfRangeException(nameof(standardDeviation), "Standard deviation must be positive");
+
+            _mean = mean;
             _standardDeviation = standardDeviation;
+            _random = new Random();
 
-            // Range of samples (from -5σ to +5σ) with precision of 0.0001
-            _range = ((standardDeviation + 5) * 2 + 1) * 10000;
-
-            GetNormalDistrubtionFunctionValues(); // Fill _values array with density values
-
-            _rand = new Random(); // Initialize RNG
+            _probabilityDensityValues = CalculateProbabilityDensityFunction();
         }
 
-        // Fills _values with normal distribution probability density function (PDF) values
-        private void GetNormalDistrubtionFunctionValues()
+        /// <summary>
+        /// Generates a single random value from the normal distribution.
+        /// </summary>
+        public double GetRandomValue()
         {
-            _values = new double[_range];
-            for (int i = 0; i < _values.Length; i++)
+            int randomIndex = _random.Next(_probabilityDensityValues.Length);
+            return _probabilityDensityValues[randomIndex];
+        }
+
+        /// <summary>
+        /// Generates an array of random values from the normal distribution.
+        /// </summary>
+        /// <param name="count">Number of values to generate</param>
+        public double[] GetRandomValues(int count)
+        {
+            if (count <= 0)
+                throw new ArgumentOutOfRangeException(nameof(count), "Count must be positive");
+
+            var values = new double[count];
+            for (int i = 0; i < count; i++)
             {
-                // x ranges from -((range - 1) / 2) / 10000 to +((range - 1) / 2) / 10000
-                double x = -1 * ((_range - 1) / 2) / 10000.0 + i / 10000.0;
-
-                // Gaussian PDF: f(x) = (1 / √(2πσ²)) * exp(-(x - μ)² / (2σ²))
-                _values[i] = (1 / Math.Sqrt(2 * Math.PI * Math.Pow(_standardDeviation, 2))) *
-                             Math.Exp(-Math.Pow(x - _expectation, 2) / (2 * Math.Pow(_standardDeviation, 2)));
+                values[i] = GetRandomValue();
             }
+            return values;
         }
 
-        // Returns a random value from the precomputed distribution values (density sampling)
-        public double GetRandomValueOfNormalDistrubtion()
+        private double[] CalculateProbabilityDensityFunction()
         {
-            int index = _rand.Next(_values.Length); // Pick random index
-            return _values[index];
+            int sampleCount = CalculateSampleCount();
+            var values = new double[sampleCount];
+
+            for (int i = 0; i < sampleCount; i++)
+            {
+                double x = CalculateXValue(i, sampleCount);
+                values[i] = CalculateGaussianProbabilityDensity(x);
+            }
+
+            return values;
         }
 
-        // Returns an array of n random values from the distribution
-        public double[] GetRandomValuesArray(int n)
+        private int CalculateSampleCount()
         {
-            double[] array = new double[n];
-            for (int i = 0; i < n - 1; i++) // NOTE: Bug: should use i < n instead of i < n - 1
-                array[i] = GetRandomValueOfNormalDistrubtion();
+            double range = StandardDeviationsRange * _standardDeviation * 2;
+            return (int)(range / Precision) + 1;
+        }
 
-            return array;
+        private double CalculateXValue(int index, int sampleCount)
+        {
+            double halfRange = (sampleCount - 1) * Precision / 2;
+            return -halfRange + index * Precision;
+        }
+
+        private double CalculateGaussianProbabilityDensity(double x)
+        {
+            double variance = Math.Pow(_standardDeviation, 2);
+            double exponent = -Math.Pow(x - _mean, 2) / (2 * variance);
+            double normalizationFactor = 1 / Math.Sqrt(2 * Math.PI * variance);
+
+            return normalizationFactor * Math.Exp(exponent);
         }
     }
 }

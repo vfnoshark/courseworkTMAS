@@ -1,4 +1,6 @@
-﻿namespace courseworkTMAS
+﻿using CourseworkTMAS;
+
+namespace courseworkTMAS
 {
     // This class calculates and stores the values of a linear function with added noise.
     class FunctionY
@@ -10,16 +12,16 @@
         public double[] Values { get => _values; }
 
         // The data set that provides model parameters and configuration
-        private readonly DataSet _dataSet;
+        private readonly DataSetConfiguration _dataSet;
 
         // Array of normally distributed random noise to be added to the function
         private readonly double[] _randomValuesOfNormalDistrubtion;
 
         // Constructor takes a dataset and random errors, then computes the Y values
-        public FunctionY(DataSet dataSet, double[] randomValuesOfNormalDistrubtion)
+        public FunctionY(DataSetConfiguration dataSet, double[] randomValuesOfNormalDistrubtion)
         {
             _dataSet = dataSet;
-            _values = new double[dataSet.NumberOfElements]; // initialize array
+            _values = new double[dataSet.SampleCount]; // initialize array
             _randomValuesOfNormalDistrubtion = randomValuesOfNormalDistrubtion;
 
             // Compute the function values immediately upon construction
@@ -34,8 +36,8 @@
             {
                 // Calculate x_i = MinX + i * Incriment
                 // Then compute Y_i = a * x_i + b + noise
-                values[i] = _dataSet.A * (_dataSet.MinX + i * _dataSet.Incriment)
-                            + _dataSet.B
+                values[i] = _dataSet.Slope * (_dataSet.MinX + i * _dataSet.Increment)
+                            + _dataSet.Intercept
                             + _randomValuesOfNormalDistrubtion[i];
             }
             _values = values; // Store results
