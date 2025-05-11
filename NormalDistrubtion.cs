@@ -7,60 +7,41 @@ namespace CourseworkTMAS
     /// </summary>
     public class NormalDistrubtion
     {
-        private const double Precision = 0.0001;
+        private readonly double _increment;
         private const int StandardDeviationsRange = 5; // ±5σ range
 
+        private readonly int _sampleCount;
         private readonly double _mean;
         private readonly double _standardDeviation;
         private readonly double[] _probabilityDensityValues;
-        private readonly Random _random;
 
         /// <summary>
         /// Initializes a new normal distribution with specified parameters.
         /// </summary>
         /// <param name="mean">The expectation (μ) of the distribution</param>
         /// <param name="standardDeviation">The standard deviation (σ) of the distribution</param>
-        public NormalDistrubtion(double mean, double standardDeviation)
+        public NormalDistrubtion(double mean, double standardDeviation, DataSetConfiguration configuration)
         {
             if (standardDeviation <= 0)
                 throw new ArgumentOutOfRangeException(nameof(standardDeviation), "Standard deviation must be positive");
 
             _mean = mean;
             _standardDeviation = standardDeviation;
-            _random = new Random();
-
+            _increment = configuration.Increment;
+            _sampleCount = configuration.SampleCount;
             _probabilityDensityValues = CalculateProbabilityDensityFunction();
         }
 
-        /// <summary>
-        /// Generates a single random value from the normal distribution.
-        /// </summary>
-        public double GetRandomValue()
-        {
-            int randomIndex = _random.Next(_probabilityDensityValues.Length);
-            return _probabilityDensityValues[randomIndex];
-        }
+
 
         /// <summary>
         /// Generates an array of random values from the normal distribution.
         /// </summary>
         /// <param name="count">Number of values to generate</param>
-        public double[] GetRandomValues(int count)
-        {
-            if (count <= 0)
-                throw new ArgumentOutOfRangeException(nameof(count), "Count must be positive");
 
-            var values = new double[count];
-            for (int i = 0; i < count; i++)
-            {
-                values[i] = GetRandomValue();
-            }
-            return values;
-        }
-
-        private double[] CalculateProbabilityDensityFunction()
+        public double[] CalculateProbabilityDensityFunction()
         {
-            int sampleCount = CalculateSampleCount();
+            int sampleCount = _sampleCount;
             var values = new double[sampleCount];
 
             for (int i = 0; i < sampleCount; i++)
@@ -72,16 +53,10 @@ namespace CourseworkTMAS
             return values;
         }
 
-        private int CalculateSampleCount()
-        {
-            double range = StandardDeviationsRange * _standardDeviation * 2;
-            return (int)(range / Precision) + 1;
-        }
-
         private double CalculateXValue(int index, int sampleCount)
         {
-            double halfRange = (sampleCount - 1) * Precision / 2;
-            return -halfRange + index * Precision;
+            double halfRange = (sampleCount - 1) * _increment / 2;
+            return -halfRange + index * _increment;
         }
 
         private double CalculateGaussianProbabilityDensity(double x)

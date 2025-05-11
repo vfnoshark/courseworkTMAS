@@ -24,9 +24,10 @@ namespace CourseworkTMAS
 
             var noiseGenerator = new NormalDistrubtion(
                 mean: 0,
-                standardDeviation: configuration.NoiseStandardDeviation);
+                standardDeviation: configuration.NoiseStandardDeviation,
+                configuration: configuration);
 
-            NoiseValues = noiseGenerator.GetRandomValues(configuration.SampleCount);
+            NoiseValues = noiseGenerator.CalculateProbabilityDensityFunction();
             FunctionValues = new FunctionY(configuration, NoiseValues).Values;
         }
 
@@ -44,9 +45,9 @@ namespace CourseworkTMAS
         private void PrintConfigurationHeader()
         {
             Console.WriteLine(
-                $"Parameters: x ∈ [{Configuration.MinX}, {Configuration.MaxX}], " +
+                $"Parameters: x : [{Configuration.MinX}, {Configuration.MaxX}], " +
                 $"h = {Configuration.Increment}, n = {Configuration.SampleCount}, " +
-                $"σ = {Configuration.NoiseStandardDeviation} " +
+                $"sigma = {Configuration.NoiseStandardDeviation} " +
                 $"True model parameters: a = {Configuration.Slope}, b = {Configuration.Intercept}");
         }
 
@@ -62,7 +63,7 @@ namespace CourseworkTMAS
             {
                 double x = Configuration.MinX + Configuration.Increment * i;
                 Console.WriteLine(
-                    $"   {i,-4} |   {x,-5} |   {NoiseValues[i],-6:F4} |   {FunctionValues[i],-6:F4}");
+                    $"   {i,-4} |   {x,-5} |   {NoiseValues[i],-6:F14} |   {FunctionValues[i],-6:F14}");
             }
         }
 
@@ -73,16 +74,16 @@ namespace CourseworkTMAS
             Console.WriteLine(
                 $"True values: a = {Configuration.Slope}, " +
                 $"b = {Configuration.Intercept}, " +
-                $"σ = {Configuration.NoiseStandardDeviation}");
+                $"sigma = {Configuration.NoiseStandardDeviation}");
 
             Console.WriteLine(
-                $"Point estimates: a = {estimator.EstimatedSlope:F4}, " +
-                $"b = {estimator.EstimatedIntercept:F4}, " +
-                $"σ = {estimator.EstimatedSigma:F4}");
+                $"Point estimates: a = {estimator.EstimatedSlope:F8}, " +
+                $"b = {estimator.EstimatedIntercept:F8}, " +
+                $"sigma = {estimator.EstimatedSigma:F8}");
 
             Console.WriteLine($"90% CI for a: {estimator.SlopeConfidenceInterval}");
             Console.WriteLine($"90% CI for b: {estimator.InterceptConfidenceInterval}");
-            Console.WriteLine($"90% CI for σ: {estimator.SigmaConfidenceInterval}");
+            Console.WriteLine($"90% CI for sigma: {estimator.SigmaConfidenceInterval}");
         }
     }
 }
